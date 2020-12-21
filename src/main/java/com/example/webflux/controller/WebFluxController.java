@@ -18,7 +18,7 @@ public class WebFluxController {
     @Autowired
     private WebFluxService webFluxService;
 
-    @GetMapping("/send/{dest}")
+    @GetMapping(value = "/send/{dest}", produces = MediaType.TEXT_PLAIN_VALUE)
     public Long sendToDest(@PathVariable("dest") Integer dest) {
        return webFluxService.sendToDest(dest);
     }

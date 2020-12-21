@@ -3,9 +3,7 @@ package com.example.webflux.service;
 import com.example.webflux.dto.WebFluxMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.FluxProcessor;
-import reactor.core.publisher.FluxSink;
+import reactor.core.publisher.*;
 
 import javax.annotation.PostConstruct;
 import java.util.concurrent.atomic.AtomicLong;
@@ -13,11 +11,14 @@ import java.util.concurrent.atomic.AtomicLong;
 @Service
 public class WebFluxService {
 
-    @Autowired
-    private FluxProcessor processor;
+//    @Autowired
+//    private FluxProcessor processor;
+//
+//    @Autowired
+//    private FluxSink<WebFluxMessage> fluxSink;
 
     @Autowired
-    private FluxSink<WebFluxMessage> fluxSink;
+    private Sinks.Many<WebFluxMessage> fluxSink;
 
     private AtomicLong counter;
 
@@ -37,11 +38,22 @@ public class WebFluxService {
         m.setId(id);
         m.setDestId(destId);
         m.setValue("Hello " + destId);
-        fluxSink.next(m);
+//        fluxSink.next(m);
+        fluxSink.emitNext(m, new ErroreSink());
         return id;
     }
 
     public Flux<WebFluxMessage> subscribe(Integer destId) {
-        return processor.filter(e -> ((WebFluxMessage) e).getDestId().equals(destId));
+//        return processor.filter(e -> ((WebFluxMessage) e).getDestId().equals(destId));
+        return fluxSink.asFlux().filter(e -> ((WebFluxMessage) e).getDestId().equals(destId));
+    }
+
+    public class ErroreSink implements Sinks.EmitFailureHandler{
+
+        @Override
+        public boolean onEmitFailure(SignalType signalType, Sinks.EmitResult emitResult) {
+            System.out.println(emitResult.name());
+            return false;
+        }
     }
 }
